@@ -1,30 +1,18 @@
-import Head from "next/head";
+import { Button, Box, Heading, Text } from "@chakra-ui/react";
+import Link from "next/link";
+import { motion } from "framer-motion";
 
-export default function Home() {
+const Home = () => {
   return (
-    <div>
-      <Head>
-        <title>My Dummy Website</title>
-        <meta
-          name="description"
-          content="This is a dummy website built with Next.js"
-        />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-
-      <main>
-        <h1>Welcome to My Dummy Website!</h1>
-
-        <p>
-          This is a simple Next.js application.
-        </p>
-      </main>
-
-      <footer>
-        <a href="https://vercel.com" target="_blank" rel="noopener noreferrer">
-          Powered by Vercel
-        </a>
-      </footer>
-    </div>
+    <Box textAlign="center" p={10}>
+      <motion.div whileHover={{ scale: 1.1 }}>
+        <Heading>Welcome to the Car Rental Service</Heading>
+        <Text mt={4} color="gray.600">Manage car rentals efficiently and effortlessly.</Text>
+        <Link href="/place-order">
+          <Button mt={6} colorScheme="teal">Place Rental Order</Button>
+        </Link>
+      </motion.div>
+    </Box>
   );
-}
+};
+export default Home;
