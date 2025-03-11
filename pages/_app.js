@@ -14,7 +14,7 @@ export default function MyApp({ Component, pageProps }) {
       <Global
         styles={{
           "html, body": {
-            overflowX: "hidden", // Prevent horizontal scrolling globally
+            overflowX: "hidden",
           },
         }}
       />
