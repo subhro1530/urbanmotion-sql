@@ -21,9 +21,8 @@ const SignIn = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [userType, setUserType] = useState("customer");
-  const [adminPassphrase, setAdminPassphrase] = useState("");
-  const [isLoading, setIsLoading] = useState(false); // State to track loading
-  const [isRouterLoading, setIsRouterLoading] = useState(true); // State to track loading
+  const [isLoading, setIsLoading] = useState(false);
+  const [isRouterLoading, setIsRouterLoading] = useState(true);
   const toast = useToast();
   const router = useRouter();
 
@@ -40,59 +39,38 @@ const SignIn = () => {
         duration: 5000,
         isClosable: true,
       });
-    }
-    else{
+    } else {
       setIsRouterLoading(false);
     }
   }, [router, toast]);
 
-
   const handleSignIn = async () => {
     try {
-      // Determine the endpoint based on userType
-      setIsLoading(true); // Set loading to true before fetching
-      let endpoint = "";
-      if (userType === "customer") {
-        endpoint = "/api/customers/verify-customer";
-      } else if (userType === "retailer") {
-        endpoint = "/api/retailers/verify-retailer";
-      } else if (userType === "admin") {
-        // Check admin passphrase (in case the backend requires one)
-        if (adminPassphrase !== "urbancars") {
-          throw new Error("Invalid admin passphrase.");
-        }
-        endpoint = "/api/admins/verify-admin";
-      }
+      setIsLoading(true);
 
-      // Prepare form data (without userType)
+      // API Endpoint
+      const endpoint =
+        "https://car-rental-backend-postgres.vercel.app/api/customers/verify-customer";
+
+      // Request Body
       const formData = { email, password };
 
-      // Log the JSON and the endpoint to the console
-      console.log(
-        "Posting to endpoint:",
-        `https://urban-motion-backend.vercel.app${endpoint}`
-      );
+      console.log("Posting to endpoint:", endpoint);
       console.log("Posted JSON:", JSON.stringify(formData));
 
-      // Make POST request to the appropriate endpoint
-      const response = await fetch(
-        `https://urban-motion-backend.vercel.app${endpoint}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData),
-        }
-      );
+      // Make API Request
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
 
-      // Log response status and body
       console.log("Response Status:", response.status);
       const result = await response.json();
       console.log("Response JSON:", result);
 
-      // Check if the response is successful and contains the sessionId
-      // Inside handleSignIn function in SignIn component
-      // Inside handleSignIn function in SignIn component
-      if (response.ok && result.verified) {
+      // If valid response, proceed to dashboard
+      if (response.ok && result.id && result.email === email) {
         toast({
           title: "Success",
           description: "Logged in successfully.",
@@ -101,18 +79,15 @@ const SignIn = () => {
           isClosable: true,
         });
 
-        // Store user type in localStorage
-        localStorage.setItem("userType", userType);
-        if (result.sessionId) {
-          localStorage.setItem("sessionId", result.sessionId);
-          console.log("Session ID stored in localStorage:", result.sessionId);
-        }
-        setIsLoading(false); // Set loading to false after data is fetched
-        // Redirect to the dashboard page after successful login
+        // Store session details
+        localStorage.setItem("userType", "customer");
+        localStorage.setItem("sessionId", result.id);
+        console.log("Session ID stored:", result.id);
+
+        setIsLoading(false);
         router.push("/dashboard");
       } else {
-        setIsLoading(false); // Set loading to false after data is fetched
-        throw new Error(result.message || "Invalid login credentials.");
+        throw new Error("Invalid login credentials.");
       }
     } catch (error) {
       toast({
@@ -122,6 +97,7 @@ const SignIn = () => {
         duration: 5000,
         isClosable: true,
       });
+      setIsLoading(false);
     }
   };
 
@@ -146,14 +122,14 @@ const SignIn = () => {
       )}
       <Navbar />
       <Flex
-        minH={{ base: "100vh", md: "100vh" }}
+        minH="100vh"
         bg="black"
-        flexDirection={{ base: "column", md: "row" }}
+        flexDirection="row"
         alignItems="center"
         justifyContent="center"
         width="100vw"
       >
-        {/* Left Panel - Sign In Form */}
+        {/* Sign In Form */}
         <MotionBox
           px={8}
           py={12}
@@ -163,9 +139,9 @@ const SignIn = () => {
           backgroundRepeat="no-repeat"
           color="lightgreen"
           textAlign="center"
-          w={{ base: "100%", md: "70%" }}
-          minH={{ base: "90vh", md: "100vh" }}
-          borderRadius={{ base: "none", md: "lg" }}
+          w="70%"
+          minH="100vh"
+          borderRadius="lg"
           display="flex"
           justifyContent="center"
           alignItems="center"
@@ -180,151 +156,79 @@ const SignIn = () => {
           <Text fontSize="sm" mb={6} color="gray.400">
             Enter your credentials to access your account.
           </Text>
-          <Select
-            name="accountType"
-            bg="gray.100"
-            color="black"
-            mb={4}
-            width={{ base: "300px", md: "350px" }}
-            defaultValue=""
-            value={userType}
-            onChange={(e) => setUserType(e.target.value)}
-            _hover={{
-              bg: "rgba(255, 255, 255, 0.7)",
-              borderColor: "rgba(255, 255, 255, 0.5)",
-            }}
-            _focus={{
-              outline: "none",
-              bg: "rgba(255, 255, 255, 0.5)",
-              borderColor: "rgba(0, 255, 0, 0.8)",
-              boxShadow: "0 0 8px rgba(0, 255, 0, 0.6)",
-            }}
-          >
-            <option value="" disabled>
-              Select Account Type
-            </option>
-            <option value="customer">👤 Customer</option>
-            <option value="retailer">🏪 Retailer</option>
-            <option value="admin">👑 Admin</option>
-          </Select>
           <Input
             name="email"
             placeholder="Email"
             bg="gray.100"
             color="black"
             mb={4}
-            width={{ base: "300px", md: "350px" }}
+            width="350px"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            _hover={{
-              bg: "rgba(255, 255, 255, 0.7)",
-              borderColor: "rgba(255, 255, 255, 0.5)",
-            }}
-            _focus={{
-              outline: "none",
-              bg: "rgba(255, 255, 255, 0.5)",
-              borderColor: "rgba(0, 255, 0, 0.8)",
-              boxShadow: "0 0 8px rgba(0, 255, 0, 0.6)",
-            }}
           />
           <Input
             name="password"
             type="password"
-            color="black"
             placeholder="Password"
             bg="gray.100"
+            color="black"
             mb={4}
-            width={{ base: "300px", md: "350px" }}
+            width="350px"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            _hover={{
-              bg: "rgba(255, 255, 255, 0.7)",
-              borderColor: "rgba(255, 255, 255, 0.5)",
-            }}
-            _focus={{
-              outline: "none",
-              bg: "rgba(255, 255, 255, 0.5)",
-              borderColor: "rgba(0, 255, 0, 0.8)",
-              boxShadow: "0 0 8px rgba(0, 255, 0, 0.6)",
-            }}
           />
-          {userType === "admin" && (
-            <Input
-              type="password"
-              placeholder="Admin Passphrase"
-              width={{ base: "300px", md: "350px" }}
-              bg="gray.100"
-              color="black"
-              mb={4}
-              value={adminPassphrase}
-              onChange={(e) => setAdminPassphrase(e.target.value)}
-              _hover={{
-                bg: "rgba(255, 255, 255, 0.7)",
-                borderColor: "rgba(255, 255, 255, 0.5)",
-              }}
-              _focus={{
-                outline: "none",
-                bg: "rgba(255, 255, 255, 0.5)",
-                borderColor: "rgba(0, 255, 0, 0.8)",
-                boxShadow: "0 0 8px rgba(0, 255, 0, 0.6)",
-              }}
-            />
-          )}
           <Button
             bg="white"
             color="black"
-            border="2px solid transparent"
-            borderRadius="md"
             fontSize="lg"
             px="5"
             py="4"
-            _hover={{
-              bg: "#00db00",
-              boxShadow: "0 0 15px #00db00, 0 0 30px #00db00",
-              border: "2px solid #00db00",
-              color: "white",
-            }}
-            sx={{
-              boxShadow: "0 0 10px #00db00, 0 0 20px rgba(0, 219, 0, 0.5)",
-              transition: "0.3s ease",
-            }}
+            _hover={{ bg: "#00db00", boxShadow: "0 0 15px #00db00" }}
             onClick={handleSignIn}
           >
             SIGN IN
           </Button>
-          {isLoading ? (
+          {isLoading && (
             <Box
               display="flex"
               justifyContent="center"
               alignItems="center"
-              minHeight="200px"
+              minHeight="50px"
             >
               <Spinner size="md" color="black" />
             </Box>
-          ) : null}
-          <Image src="/side_car_left.png" alt="Logo" h="200px" cursor="pointer" position="absolute" bottom={0} left={10} display={{ base: "none", md: "unset" }} />
+          )}
+          <Image
+            src="/side_car_left.png"
+            alt="Logo"
+            h="200px"
+            position="absolute"
+            bottom={0}
+            left={10}
+            display={{ base: "none", md: "unset" }}
+          />
         </MotionBox>
 
-        {/* Right Panel - Sign Up Redirect */}
+        {/* Sign Up Redirect */}
         <MotionBox
-          px={{ base: 6, md: 8 }}
-          py={{ base: 10, md: 8 }}
+          px={8}
+          py={8}
           bg="gray.900"
           color="#00db00"
           boxShadow="2xl"
           borderRadius="lg"
-          w={{ base: "100%", md: "30%" }}
+          w="30%"
           textAlign="center"
           display="flex"
           flexDirection="column"
-          justifyContent={{ base: "unset", md: "center" }}
+          justifyContent="center"
           alignItems="center"
-          minH={{ base: "60vh", md: "100vh" }}
+          minH="100vh"
           initial={{ x: 200, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ duration: 1 }}
         >
-          <Heading fontSize={{ base: "2xl", md: "4xl" }} mb={4}>
+          <Heading fontSize="4xl" mb={4}>
             New Here?
           </Heading>
           <Text fontSize="md" mb={6}>
@@ -333,26 +237,14 @@ const SignIn = () => {
           <Button
             bg="black"
             color="lightgreen"
-            border="2px solid transparent"
-            borderRadius="md"
             fontSize="lg"
             px="5"
             py="4"
-            _hover={{
-              bg: "#00db00",
-              boxShadow: "0 0 15px #00db00, 0 0 30px #00db00",
-              border: "2px solid #00db00",
-              color: "white",
-            }}
-            sx={{
-              boxShadow: "0 0 10px #00db00, 0 0 20px rgba(0, 219, 0, 0.5)",
-              transition: "0.3s ease",
-            }}
+            _hover={{ bg: "#00db00", boxShadow: "0 0 15px #00db00" }}
             onClick={() => router.push("/signup")}
           >
             SIGN UP
           </Button>
-          <Image src="/side_car_left.png" alt="Logo" h="200px" cursor="pointer" position="absolute" bottom={0} display={{ base: "flex", md: "none" }} justifyContent="center" alignItems="center" />
         </MotionBox>
       </Flex>
     </>
