@@ -1,9 +1,9 @@
 import { ChakraProvider } from "@chakra-ui/react";
 import Head from "next/head";
 import { Global } from "@emotion/react";
-import theme from "@/theme";
+import theme from "@/theme"; // Path to your theme.js
 
-export default function MyApp({ Component, pageProps }) {
+export default function App({ Component, pageProps }) {
   return (
     <ChakraProvider theme={theme}>
       <Head>
@@ -14,7 +14,7 @@ export default function MyApp({ Component, pageProps }) {
       <Global
         styles={{
           "html, body": {
-            overflowX: "hidden",
+            overflowX: "hidden", // Prevent horizontal scrolling globally
           },
         }}
       />
