@@ -181,7 +181,7 @@ const Navbar = () => {
                     w="100%"
                     wordBreak="break-word"
                   >
-                    Hi, {userData.data.name}
+                    Hi, {userData?.data?.name || "User"}
                   </Text>
                 ) : (
                   <Text
@@ -258,7 +258,6 @@ const Navbar = () => {
             )}
           </Flex>
         )}
-
       </Flex>
 
       {/* Hamburger Icon for Mobile */}
@@ -310,7 +309,12 @@ const Navbar = () => {
             </Link>
           ))}
           {sessionId === "temporary" ? (
-            <VStack justifyContent="center" alignItems="center" h="50px" w="100%">
+            <VStack
+              justifyContent="center"
+              alignItems="center"
+              h="50px"
+              w="100%"
+            >
               <Spinner color="green.500" size="md" />
               <Text color="gray.700" fontSize="16px" mt="2">
                 Loading user details...
@@ -420,8 +424,9 @@ const Navbar = () => {
                 Logout
               </Button>
             </>
-          ):(<></>)
-        }
+          ) : (
+            <></>
+          )}
         </VStack>
       )}
     </Flex>
