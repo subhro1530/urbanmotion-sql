@@ -3,7 +3,6 @@ import { Flex, Box } from "@chakra-ui/react";
 import Sidebar from "../CommonDashboardComponents/SideBar";
 import MainContent from "./MainContent";
 import BookCar from "./BookCar";
-import Bookings from "./Bookings";
 import Notifications from "./Notifications";
 import Payments from "./Payments";
 import RentalHistory from "./RentalHistory";
@@ -35,7 +34,6 @@ const CustomerDashboard = () => {
   const sidebarData = [
     { icon: FaUser, label: "Profile", path: "profile" },
     { icon: FaCar, label: "Book a Car", path: "book-car" },
-    { icon: FaCalendarAlt, label: "My Bookings", path: "bookings" },
     { icon: FaBell, label: "Notifications", path: "notifications" },
     { icon: FaMoneyBillWave, label: "Payments", path: "payments" },
     { icon: FaFileAlt, label: "Rental History", path: "rental-history" },
@@ -52,8 +50,6 @@ const CustomerDashboard = () => {
         return <MainContent customerData={customerData} />; // Render MainContent for Profile
       case "book-car":
         return <BookCar />;
-      case "bookings":
-        return <Bookings />;
       case "notifications":
         return <Notifications />;
       case "payments":
