@@ -9,41 +9,76 @@ import {
   Tbody,
   Td,
   Text,
+  Button,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import dayjs from "dayjs";
+import { jsPDF } from "jspdf";
 
 const RentalHistory = () => {
-  const [customerData, setCustomerData] = useState(null);
   const [rentalHistory, setRentalHistory] = useState([]);
 
   useEffect(() => {
-    const sessionId = localStorage.getItem("sessionId");
-    if (sessionId) {
-      fetch(`https://urban-motion-backend.vercel.app/api/sessions/${sessionId}`)
-        .then((res) => res.json())
-        .then((data) => setCustomerData(data.data))
-        .catch((err) => console.error("Failed to fetch customer data:", err));
+    const customerId = localStorage.getItem("sessionId");
+    if (customerId) {
+      axios
+        .get(
+          "https://car-rental-backend-postgres.vercel.app/api/booking/bookings"
+        )
+        .then((response) => {
+          const filteredBookings = response.data.filter(
+            (booking) => booking.customerId === customerId
+          );
+          setRentalHistory(filteredBookings);
+        })
+        .catch((error) =>
+          console.error("Error fetching rental history:", error)
+        );
     }
-    const fetchRentalHistory = async () => {
-      if (customerData) {
-        try {
-          const response = await axios.get(`https://urban-motion-backend-liart.vercel.app/api/booking/customer?customerId=${customerData._id}`);
-          setRentalHistory(response.data);
-        } catch (error) {
-          console.error("Error fetching rental history:", error);
-        }
-      }
-    };
+  }, []);
 
-    fetchRentalHistory();
-  }, [customerData]);
+  const printPDF = () => {
+    const doc = new jsPDF();
+    let yPos = 10;
+
+    // Title
+    doc.setFontSize(16);
+    doc.text("Rental History", 10, yPos);
+    yPos += 10;
+
+    // Table header
+    doc.setFontSize(12);
+    doc.text("Booking ID", 10, yPos);
+    doc.text("Car ID", 70, yPos);
+    doc.text("Duration", 110, yPos);
+    doc.text("Final Price", 150, yPos);
+    yPos += 7;
+
+    // Draw a line for header separation
+    doc.line(10, yPos, 200, yPos);
+    yPos += 5;
+
+    // Table content
+    rentalHistory.forEach((booking) => {
+      doc.text(`${booking.id}`, 10, yPos);
+      doc.text(`${booking.carId}`, 70, yPos);
+      doc.text(`${booking.duration}`, 110, yPos);
+      doc.text(`$${booking.finalPrice}`, 150, yPos);
+      yPos += 7;
+      // If yPos is too low, add a new page
+      if (yPos > 280) {
+        doc.addPage();
+        yPos = 10;
+      }
+    });
+
+    doc.save("rental-history.pdf");
+  };
 
   return (
     <Box
       p={6}
-      bgGradient="linear(to-b, black.500, black.400)"
+      bg="gray.100"
       borderRadius="lg"
       boxShadow="lg"
       transition="all 0.4s ease-in-out"
@@ -82,61 +117,48 @@ const RentalHistory = () => {
         <Thead bg="#00db00" color="white">
           <Tr>
             <Th color="white" fontWeight="bold">
-              Car
+              Booking ID
             </Th>
             <Th color="white" fontWeight="bold">
-              Start Date
+              Car ID
             </Th>
             <Th color="white" fontWeight="bold">
-              End Date
+              Duration
             </Th>
             <Th color="white" fontWeight="bold">
-              Days
-            </Th>
-            <Th color="white" fontWeight="bold">
-              Price
+              Final Price
             </Th>
           </Tr>
         </Thead>
         <Tbody>
           {rentalHistory.length > 0 ? (
-            rentalHistory.map((rental) => {
-              // Calculate days
-              const startDate = dayjs(rental.startDate);
-              const endDate = dayjs(rental.endDate);
-              const days = endDate.diff(startDate, "day");
-
-              return (
-                <Tr
-                  key={rental.id}
-                  transition="all 0.3s ease-in-out"
-                  _hover={{
-                    bg: "rgba(0, 219, 0, 0.1)",
-                    transform: "translateY(-2px)",
-                    boxShadow: "sm",
-                  }}
-                >
-                  <Td fontWeight="medium" color="gray.700">
-                    {rental.car}
-                  </Td>
-                  <Td fontWeight="medium" color="gray.600">
-                    {rental.startDate}
-                  </Td>
-                  <Td fontWeight="medium" color="gray.600">
-                    {rental.endDate}
-                  </Td>
-                  <Td fontWeight="medium" color="#00db00">
-                    {days} days
-                  </Td>
-                  <Td fontWeight="bold" color="#00db00">
-                    ${rental.price}
-                  </Td>
-                </Tr>
-              );
-            })
+            rentalHistory.map((booking) => (
+              <Tr
+                key={booking.id}
+                transition="all 0.3s ease-in-out"
+                _hover={{
+                  bg: "rgba(0, 219, 0, 0.1)",
+                  transform: "translateY(-2px)",
+                  boxShadow: "sm",
+                }}
+              >
+                <Td fontWeight="medium" color="gray.700">
+                  {booking.id}
+                </Td>
+                <Td fontWeight="medium" color="gray.600">
+                  {booking.carId}
+                </Td>
+                <Td fontWeight="medium" color="gray.600">
+                  {booking.duration}
+                </Td>
+                <Td fontWeight="bold" color="#00db00">
+                  ${booking.finalPrice}
+                </Td>
+              </Tr>
+            ))
           ) : (
             <Tr>
-              <Td colSpan={5}>
+              <Td colSpan={4}>
                 <Text
                   textAlign="center"
                   color="gray.500"
@@ -150,6 +172,17 @@ const RentalHistory = () => {
           )}
         </Tbody>
       </Table>
+
+      {/* Print PDF Button */}
+      <Box display="flex" justifyContent="center" mt={6}>
+        <Button
+          colorScheme="green"
+          onClick={printPDF}
+          _hover={{ bg: "green.500", transform: "scale(1.02)" }}
+        >
+          Print Rental History as PDF
+        </Button>
+      </Box>
     </Box>
   );
 };
