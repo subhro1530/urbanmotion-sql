@@ -31,6 +31,7 @@
     "googleapis": "^105.0.0",
     "jquery": "^3.7.1",
     "jspdf": "^2.5.2",
+    "jspdf-autotable": "^5.0.2",
     "leaflet": "^1.9.4",
     "localstorage": "^1.0.1",
     "next": "14.0.4",

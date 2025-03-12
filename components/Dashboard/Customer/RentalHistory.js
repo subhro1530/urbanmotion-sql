@@ -14,6 +14,7 @@ import {
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const RentalHistory = () => {
   const [rentalHistory, setRentalHistory] = useState([]);
@@ -38,38 +39,39 @@ const RentalHistory = () => {
   }, []);
 
   const printPDF = () => {
-    const doc = new jsPDF();
-    let yPos = 10;
+    const doc = new jsPDF({
+      orientation: "portrait",
+      unit: "pt", // points, which is typical for autoTable
+      format: "A4",
+    });
 
-    // Title
+    // Optional: Add a title or heading
     doc.setFontSize(16);
-    doc.text("Rental History", 10, yPos);
-    yPos += 10;
+    doc.text("Rental History", 40, 40);
 
-    // Table header
-    doc.setFontSize(12);
-    doc.text("Booking ID", 10, yPos);
-    doc.text("Car ID", 70, yPos);
-    doc.text("Duration", 110, yPos);
-    doc.text("Final Price", 150, yPos);
-    yPos += 7;
+    // Prepare the columns and rows for autoTable
+    const columns = ["Booking ID", "Car ID", "Duration", "Final Price"];
+    const rows = rentalHistory.map((booking) => [
+      booking.id,
+      booking.carId,
+      booking.duration,
+      `$${booking.finalPrice}`,
+    ]);
 
-    // Draw a line for header separation
-    doc.line(10, yPos, 200, yPos);
-    yPos += 5;
-
-    // Table content
-    rentalHistory.forEach((booking) => {
-      doc.text(`${booking.id}`, 10, yPos);
-      doc.text(`${booking.carId}`, 70, yPos);
-      doc.text(`${booking.duration}`, 110, yPos);
-      doc.text(`$${booking.finalPrice}`, 150, yPos);
-      yPos += 7;
-      // If yPos is too low, add a new page
-      if (yPos > 280) {
-        doc.addPage();
-        yPos = 10;
-      }
+    // Generate the table
+    autoTable(doc, {
+      startY: 60, // where table should start
+      head: [columns],
+      body: rows,
+      styles: {
+        fontSize: 10,
+        cellPadding: 5,
+      },
+      headStyles: {
+        fillColor: [0, 219, 0], // green header
+        textColor: 255, // white text
+      },
+      margin: { left: 40, right: 40 },
     });
 
     doc.save("rental-history.pdf");
