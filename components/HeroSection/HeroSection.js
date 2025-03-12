@@ -172,6 +172,7 @@ const HeroSection = () => {
             cursor="pointer"
             zIndex="2"
             onClick={ handleBookNow }
+            disabled
           >
             Book Now
           </Button>
